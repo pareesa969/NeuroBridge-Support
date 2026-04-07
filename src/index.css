@@ -1,0 +1,99 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --font-headline: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-label: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-on-background: #e2e2eb;
+  --color-background: #111319;
+  --color-on-tertiary-container: #412600;
+  --color-on-tertiary: #472a00;
+  --color-on-secondary-container: #b6abff;
+  --color-on-secondary: #2e158c;
+  --color-surface: #111319;
+  --color-tertiary-fixed-dim: #ffb962;
+  --color-primary-fixed: #dce1ff;
+  --color-primary-fixed-dim: #b6c4ff;
+  --color-surface-container-highest: #33343b;
+  --color-inverse-surface: #e2e2eb;
+  --color-tertiary: #ffb962;
+  --color-on-tertiary-fixed-variant: #663e00;
+  --color-secondary-fixed-dim: #c8bfff;
+  --color-error-container: #93000a;
+  --color-on-primary-fixed-variant: #0d3bad;
+  --color-secondary-fixed: #e5deff;
+  --color-tertiary-container: #ce8200;
+  --color-on-tertiary-fixed: #2b1700;
+  --color-surface-tint: #b6c4ff;
+  --color-surface-container: #1e1f26;
+  --color-outline-variant: #444653;
+  --color-outline: #8e909f;
+  --color-surface-variant: #33343b;
+  --color-tertiary-fixed: #ffddb9;
+  --color-on-error: #690005;
+  --color-on-primary: #002780;
+  --color-primary: #b6c4ff;
+  --color-on-secondary-fixed-variant: #4533a3;
+  --color-secondary-container: #4533a3;
+  --color-secondary: #c8bfff;
+  --color-on-primary-container: #002376;
+  --color-surface-container-high: #282a30;
+  --color-surface-container-low: #191b22;
+  --color-inverse-on-surface: #2e3037;
+  --color-on-error-container: #ffdad6;
+  --color-on-surface-variant: #c4c5d5;
+  --color-on-primary-fixed: #001550;
+  --color-on-secondary-fixed: #190064;
+  --color-error: #ffb4ab;
+  --color-on-surface: #e2e2eb;
+  --color-surface-dim: #111319;
+  --color-surface-container-lowest: #0c0e14;
+  --color-primary-container: #6c8cff;
+  --color-inverse-primary: #3255c6;
+  --color-surface-bright: #373940;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-on-surface font-body min-h-screen;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(108, 140, 255, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(200, 191, 255, 0.05) 0px, transparent 50%);
+  }
+}
+
+.glass-panel {
+  background: rgba(30, 31, 38, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.glass-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+  backdrop-filter: blur(20px);
+}
+
+.luminous-glow {
+  box-shadow: 0 40px 100px -20px rgba(108, 140, 255, 0.15);
+}
+
+.luminous-shadow {
+  box-shadow: 0 40px 40px -10px rgba(182, 196, 255, 0.05);
+}
+
+.luminous-button {
+  background: linear-gradient(90deg, #6C8CFF 0%, #C8BFFF 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
