@@ -128,7 +128,7 @@ Add screenshot here
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/luminous-sanctuary.git
+git clone https://github.com/pareesa969/Luminescent-Sanctuary.git
 ```
 
 ### 2. Navigate to Project
