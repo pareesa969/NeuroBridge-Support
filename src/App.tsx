@@ -44,7 +44,14 @@ interface LocalUser {
   role: string;
 }
 
-type View = 'login' | 'register' | 'dashboard' | 'questionnaire' | 'chat' | 'settings';
+interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  timestamp: string;
+}
+
+type View = 'login' | 'register' | 'dashboard' | 'questionnaire' | 'chat' | 'settings' | 'history' | 'scenario';
 
 interface Message {
   id: string;
@@ -214,12 +221,15 @@ const Button = ({
   );
 };
 
-const Card = ({ children, className, glow = false }: { children: React.ReactNode, className?: string, glow?: boolean }) => (
-  <div className={cn(
-    'glass-card rounded-[32px] border border-white/10 overflow-hidden',
-    glow && 'luminous-glow',
-    className
-  )}>
+const Card = ({ children, className, glow = false, ...props }: { children: React.ReactNode, className?: string, glow?: boolean } & React.HTMLAttributes<HTMLDivElement>) => (
+  <div 
+    className={cn(
+      'glass-card rounded-[32px] border border-white/10 overflow-hidden',
+      glow && 'luminous-glow',
+      className
+    )}
+    {...props}
+  >
     {children}
   </div>
 );
@@ -255,7 +265,7 @@ const LoginView = ({ onNavigate }: { onNavigate: (v: View) => void }) => {
     
     setTimeout(() => {
       try {
-        const users = JSON.parse(localStorage.getItem('sanctuary_users') || '[]');
+        const users = JSON.parse(localStorage.getItem('neurobridge_users') || localStorage.getItem('sanctuary_users') || '[]');
         const user = users.find((u: any) => u.email === email && u.password === password);
         
         if (user) {
@@ -265,7 +275,7 @@ const LoginView = ({ onNavigate }: { onNavigate: (v: View) => void }) => {
             email: user.email,
             role: user.role
           };
-          localStorage.setItem('sanctuary_current_user', JSON.stringify(localUser));
+          localStorage.setItem('neurobridge_current_user', JSON.stringify(localUser));
           window.dispatchEvent(new Event('storage')); // Trigger update
           onNavigate('dashboard');
         } else {
@@ -294,7 +304,7 @@ const LoginView = ({ onNavigate }: { onNavigate: (v: View) => void }) => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-primary-container mb-6 luminous-shadow">
             <Shield className="w-8 h-8 text-on-primary-container" />
           </div>
-          <h1 className="text-4xl font-headline font-extrabold text-on-surface mb-3 tracking-tight">Luminescent Sanctuary</h1>
+          <h1 className="text-4xl font-headline font-extrabold text-on-surface mb-3 tracking-tight">NeuroBridge Support</h1>
           <p className="text-on-surface-variant font-medium">Neuro-Support AI for Every Family</p>
         </div>
 
@@ -336,13 +346,13 @@ const LoginView = ({ onNavigate }: { onNavigate: (v: View) => void }) => {
             </div>
 
             <Button type="submit" className="w-full py-4" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login to Sanctuary'}
+              {loading ? 'Logging in...' : 'Login to NeuroBridge Support'}
             </Button>
           </form>
         </Card>
 
         <p className="text-center mt-8 text-on-surface-variant">
-          New to Sanctuary? <button onClick={() => onNavigate('register')} className="text-primary font-bold hover:underline">Create an account</button>
+          New to NeuroBridge Support? <button onClick={() => onNavigate('register')} className="text-primary font-bold hover:underline">Create an account</button>
         </p>
       </motion.div>
     </div>
@@ -367,7 +377,7 @@ const RegisterView = ({ onNavigate, onRegister }: { onNavigate: (v: View) => voi
     
     setTimeout(() => {
       try {
-        const users = JSON.parse(localStorage.getItem('sanctuary_users') || '[]');
+        const users = JSON.parse(localStorage.getItem('neurobridge_users') || localStorage.getItem('sanctuary_users') || '[]');
         
         if (users.some((u: any) => u.email === email)) {
           setError('This email is already registered.');
@@ -385,7 +395,7 @@ const RegisterView = ({ onNavigate, onRegister }: { onNavigate: (v: View) => voi
         };
 
         users.push(newUser);
-        localStorage.setItem('sanctuary_users', JSON.stringify(users));
+        localStorage.setItem('neurobridge_users', JSON.stringify(users));
         
         const localUser: LocalUser = {
           uid: newUser.uid,
@@ -393,7 +403,7 @@ const RegisterView = ({ onNavigate, onRegister }: { onNavigate: (v: View) => voi
           email: newUser.email,
           role: newUser.role
         };
-        localStorage.setItem('sanctuary_current_user', JSON.stringify(localUser));
+        localStorage.setItem('neurobridge_current_user', JSON.stringify(localUser));
         window.dispatchEvent(new Event('storage'));
 
         onRegister(name, email);
@@ -417,7 +427,7 @@ const RegisterView = ({ onNavigate, onRegister }: { onNavigate: (v: View) => voi
         className="w-full max-w-md z-10"
       >
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-headline font-extrabold text-on-surface mb-3 tracking-tight">Join the Sanctuary</h1>
+          <h1 className="text-4xl font-headline font-extrabold text-on-surface mb-3 tracking-tight">Join NeuroBridge Support</h1>
           <p className="text-on-surface-variant font-medium">Start your journey to family balance</p>
         </div>
 
@@ -462,7 +472,7 @@ const RegisterView = ({ onNavigate, onRegister }: { onNavigate: (v: View) => voi
             <div className="p-4 bg-error-container/20 rounded-2xl border border-error/20 flex gap-3">
               <AlertCircle className="w-5 h-5 text-error shrink-0 mt-0.5" />
               <div className="text-xs text-on-error-container leading-relaxed">
-                <strong>Medical Disclaimer:</strong> Luminescent Sanctuary is an AI support tool and not a replacement for professional medical advice, diagnosis, or treatment.
+                <strong>Medical Disclaimer:</strong> NeuroBridge Support is an AI support tool and not a replacement for professional medical advice, diagnosis, or treatment.
               </div>
             </div>
 
@@ -502,7 +512,7 @@ const Sidebar = ({ active, onNavigate }: { active: View, onNavigate: (v: View) =
           <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center">
             <Shield className="w-6 h-6 text-on-primary-container" />
           </div>
-          <span className="font-headline font-bold text-lg tracking-tight">Sanctuary</span>
+          <span className="font-headline font-bold text-lg tracking-tight">NeuroBridge Support</span>
         </div>
 
         <nav className="space-y-2">
@@ -543,7 +553,7 @@ const Sidebar = ({ active, onNavigate }: { active: View, onNavigate: (v: View) =
 
         <button 
           onClick={() => {
-            localStorage.removeItem('sanctuary_current_user');
+            localStorage.removeItem('neurobridge_current_user');
             window.dispatchEvent(new Event('storage'));
             onNavigate('login');
           }}
@@ -557,17 +567,59 @@ const Sidebar = ({ active, onNavigate }: { active: View, onNavigate: (v: View) =
   );
 };
 
-const DashboardView = ({ onNavigate, userName }: { onNavigate: (v: View) => void, userName: string }) => {
+const DashboardView = ({ onNavigate, userName, assessmentAnswers }: { onNavigate: (v: View) => void, userName: string, assessmentAnswers: AssessmentAnswer[] }) => {
   const actions = [
     "Meltdown Support", "Bedtime Routine", "Social Stories", "Sensory Overload", "Communication Tips"
   ];
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+    const margin = 20;
+    let y = 20;
+
+    doc.setFontSize(22);
+    doc.setTextColor(40, 40, 40);
+    doc.text('NeuroBridge Support Profile', margin, y);
+    y += 15;
+
+    doc.setFontSize(14);
+    doc.text(`User: ${userName}`, margin, y);
+    y += 10;
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, margin, y);
+    y += 20;
+
+    doc.setFontSize(16);
+    doc.setTextColor(100, 100, 255);
+    doc.text('Assessment Results', margin, y);
+    y += 10;
+
+    doc.setFontSize(10);
+    doc.setTextColor(60, 60, 60);
+
+    assessmentAnswers.forEach((ans, i) => {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      const questionText = doc.splitTextToSize(`${i + 1}. ${ans.question}`, 170);
+      doc.setFont("helvetica", "bold");
+      doc.text(questionText, margin, y);
+      y += (questionText.length * 5);
+      
+      doc.setFont("helvetica", "normal");
+      doc.text(`Answer: ${ans.answer}`, margin + 5, y);
+      y += 10;
+    });
+
+    doc.save(`${userName.replace(/\s+/g, '_')}_NeuroBridge_Support_Profile.pdf`);
+  };
 
   return (
     <div className="flex-1 h-screen overflow-y-auto custom-scrollbar p-10 space-y-10">
       <header className="flex items-center justify-between">
         <div>
           <h2 className="text-4xl font-headline font-extrabold tracking-tight mb-2">Welcome back, {userName || 'Friend'}</h2>
-          <p className="text-on-surface-variant font-medium">Your sanctuary is ready to support you today.</p>
+          <p className="text-on-surface-variant font-medium">Your NeuroBridge Support is ready to support you today.</p>
         </div>
         <div className="flex items-center gap-4">
           <button className="p-3 rounded-2xl bg-surface-container border border-outline-variant text-on-surface-variant hover:text-on-surface transition-all">
@@ -612,7 +664,7 @@ const DashboardView = ({ onNavigate, userName }: { onNavigate: (v: View) => void
 
           <Card className="col-span-4 p-8 bg-secondary-container/10 border-secondary/20">
             <div className="flex items-center justify-between mb-8">
-              <h3 className="font-headline font-bold text-xl">Sanctuary Pulse</h3>
+              <h3 className="font-headline font-bold text-xl">NeuroBridge Support Pulse</h3>
               <Heart className="w-6 h-6 text-secondary" />
             </div>
             <div className="space-y-6">
@@ -634,21 +686,30 @@ const DashboardView = ({ onNavigate, userName }: { onNavigate: (v: View) => void
           </Card>
 
           <div className="col-span-12 grid grid-cols-3 gap-6">
-            <Card className="p-6 hover:border-primary/40 transition-all cursor-pointer group">
+            <Card 
+              onClick={() => onNavigate('scenario')}
+              className="p-6 hover:border-primary/40 transition-all cursor-pointer group"
+            >
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center mb-4 group-hover:bg-primary-container transition-all">
                 <BookOpen className="w-6 h-6 text-on-surface-variant group-hover:text-on-primary-container" />
               </div>
               <h4 className="font-bold mb-2">Start Scenario</h4>
               <p className="text-xs text-on-surface-variant">Practice transitions or social situations in a safe space.</p>
             </Card>
-            <Card className="p-6 hover:border-primary/40 transition-all cursor-pointer group">
+            <Card 
+              onClick={() => onNavigate('history')}
+              className="p-6 hover:border-primary/40 transition-all cursor-pointer group"
+            >
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center mb-4 group-hover:bg-primary-container transition-all">
                 <History className="w-6 h-6 text-on-surface-variant group-hover:text-on-primary-container" />
               </div>
               <h4 className="font-bold mb-2">History</h4>
               <p className="text-xs text-on-surface-variant">Review past support strategies and what worked best.</p>
             </Card>
-            <Card className="p-6 hover:border-primary/40 transition-all cursor-pointer group">
+            <Card 
+              onClick={downloadPDF}
+              className="p-6 hover:border-primary/40 transition-all cursor-pointer group"
+            >
               <div className="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center mb-4 group-hover:bg-primary-container transition-all">
                 <Share2 className="w-6 h-6 text-on-surface-variant group-hover:text-on-primary-container" />
               </div>
@@ -754,7 +815,7 @@ const QuestionnaireView = ({ onNavigate, onComplete }: { onNavigate: (v: View) =
                 <Brain className="w-10 h-10 text-primary" />
               </div>
               <h2 className="text-4xl font-headline font-extrabold tracking-tight">Assessment Complete!</h2>
-              <p className="text-on-surface-variant text-lg">Based on your answers, here are some initial suggestions for your sanctuary:</p>
+              <p className="text-on-surface-variant text-lg">Based on your answers, here are some initial suggestions for your NeuroBridge Support:</p>
             </div>
 
             {isGenerating ? (
@@ -902,13 +963,27 @@ const QuestionnaireView = ({ onNavigate, onComplete }: { onNavigate: (v: View) =
   );
 };
 
-const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmentAnswers: AssessmentAnswer[] }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'assistant', content: `Hello ${userName || 'Sarah'}. I'm here to support you. I've reviewed your assessment and I'm ready to help with your specific needs. How are you feeling today?`, timestamp: new Date() }
-  ]);
+const ChatView = ({ 
+  userName, 
+  assessmentAnswers, 
+  sessions, 
+  setSessions, 
+  currentSessionId, 
+  setCurrentSessionId 
+}: { 
+  userName: string, 
+  assessmentAnswers: AssessmentAnswer[],
+  sessions: ChatSession[],
+  setSessions: React.Dispatch<React.SetStateAction<ChatSession[]>>,
+  currentSessionId: string | null,
+  setCurrentSessionId: (id: string | null) => void
+}) => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const currentSession = sessions.find(s => s.id === currentSessionId) || null;
+  const messages = currentSession?.messages || [];
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -916,16 +991,46 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
     }
   }, [messages, isTyping]);
 
+  const createNewSession = () => {
+    const newSession: ChatSession = {
+      id: Date.now().toString(),
+      title: "New Session",
+      messages: [
+        { id: '1', role: 'assistant', content: `Hello ${userName || 'Sarah'}. I'm here to support you. How can I help you today?`, timestamp: new Date() }
+      ],
+      timestamp: new Date().toISOString()
+    };
+    setSessions(prev => [newSession, ...prev]);
+    setCurrentSessionId(newSession.id);
+  };
+
+  // Initialize first session if none exists
+  useEffect(() => {
+    if (sessions.length === 0) {
+      createNewSession();
+    } else if (!currentSessionId) {
+      setCurrentSessionId(sessions[0].id);
+    }
+  }, []);
+
   const handleSend = async () => {
-    if (!input.trim() || isTyping) return;
+    if (!input.trim() || isTyping || !currentSessionId) return;
     
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input, timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
+    
+    // Update local state immediately
+    const updatedMessages = [...messages, userMsg];
+    setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, messages: updatedMessages, timestamp: new Date().toISOString() } : s));
+    
     setInput('');
     setIsTyping(true);
 
     try {
-      const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not configured. Please add it in the Settings > Secrets menu.');
+      }
+      const genAI = new GoogleGenAI({ apiKey });
       const model = await genAI.models.generateContentStream({
         model: "gemini-3-flash-preview",
         contents: [
@@ -933,13 +1038,13 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
             role: "user",
             parts: [{
               text: `Context: User is ${userName}. Assessment answers: ${JSON.stringify(assessmentAnswers)}. 
-              Previous messages: ${messages.map(m => `${m.role}: ${m.content}`).join('\n')}.
+              Previous messages: ${updatedMessages.map(m => `${m.role}: ${m.content}`).join('\n')}.
               User message: ${input}`
             }]
           }
         ],
         config: {
-          systemInstruction: "You are Luminescent Sanctuary Guide, a compassionate AI support tool for families with neurodivergent children. Your goal is to provide neuro-affirming guidance, practical strategies, and emotional support. Use the user's assessment data to personalize your responses. Be concise, empathetic, and always include a medical disclaimer when appropriate. Never give medical diagnoses."
+          systemInstruction: "You are NeuroBridge Support Guide, a compassionate AI support tool for families with neurodivergent children. Your goal is to provide neuro-affirming guidance, practical strategies, and emotional support. Use the user's assessment data to personalize your responses. Be concise, empathetic, and always include a medical disclaimer when appropriate. Never give medical diagnoses."
         }
       });
 
@@ -947,24 +1052,68 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
       const aiMsgId = (Date.now() + 1).toString();
       
       // Add placeholder message
-      setMessages(prev => [...prev, { id: aiMsgId, role: 'assistant', content: "", timestamp: new Date() }]);
+      setSessions(prev => prev.map(s => s.id === currentSessionId ? { 
+        ...s, 
+        messages: [...updatedMessages, { id: aiMsgId, role: 'assistant', content: "", timestamp: new Date() }] 
+      } : s));
 
       for await (const chunk of model) {
         const text = chunk.text;
         fullResponse += text;
-        setMessages(prev => prev.map(m => m.id === aiMsgId ? { ...m, content: fullResponse } : m));
+        setSessions(prev => prev.map(s => s.id === currentSessionId ? {
+          ...s,
+          messages: s.messages.map(m => m.id === aiMsgId ? { ...m, content: fullResponse } : m)
+        } : s));
       }
+
+      // Update title if it's still "New Session"
+      if (currentSession?.title === "New Session") {
+        try {
+          const titleResult = await genAI.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: `Summarize this conversation into a concise 3-5 word title. Do not use quotes or special characters.
+            User: ${input}
+            Assistant: ${fullResponse}`
+          });
+          const newTitle = titleResult.text.trim().replace(/^["']|["']$/g, '');
+          setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, title: newTitle } : s));
+        } catch (e) {
+          console.error("Title generation error:", e);
+          setSessions(prev => prev.map(s => s.id === currentSessionId ? { ...s, title: input.substring(0, 30) + (input.length > 30 ? "..." : "") } : s));
+        }
+      }
+
     } catch (error) {
       console.error("AI Error:", error);
-      setMessages(prev => [...prev, { 
-        id: Date.now().toString(), 
-        role: 'assistant', 
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.", 
-        timestamp: new Date() 
-      }]);
+      setSessions(prev => prev.map(s => s.id === currentSessionId ? {
+        ...s,
+        messages: [...s.messages, { 
+          id: Date.now().toString(), 
+          role: 'assistant', 
+          content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.", 
+          timestamp: new Date() 
+        }]
+      } : s));
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const downloadChat = () => {
+    if (!currentSession) return;
+    const doc = new jsPDF();
+    let y = 20;
+    doc.setFontSize(18);
+    doc.text(`Chat Session: ${currentSession.title}`, 20, y);
+    y += 15;
+    doc.setFontSize(10);
+    currentSession.messages.forEach(m => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      const text = doc.splitTextToSize(`${m.role.toUpperCase()}: ${m.content}`, 170);
+      doc.text(text, 20, y);
+      y += (text.length * 5) + 5;
+    });
+    doc.save(`Chat_${currentSession.title.replace(/\s+/g, '_')}.pdf`);
   };
 
   return (
@@ -972,22 +1121,27 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
       {/* Sessions Sidebar */}
       <div className="w-80 border-r border-outline-variant bg-surface-container-low flex flex-col">
         <div className="p-6 border-b border-outline-variant">
-          <Button variant="outline" className="w-full justify-start gap-3">
+          <Button onClick={createNewSession} variant="outline" className="w-full justify-start gap-3">
             <Plus className="w-5 h-5" /> New Session
           </Button>
         </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
           <p className="text-[10px] font-bold text-outline uppercase tracking-widest px-2 mb-2">Recent Sessions</p>
-          {[
-            "Morning Routine Help", "Sensory Overload at Park", "Bedtime Strategy", "School Transition"
-          ].map((session, i) => (
-            <button key={i} className={cn(
-              "w-full text-left p-4 rounded-2xl text-sm font-medium transition-all",
-              i === 0 ? "bg-surface-container-highest text-on-surface" : "text-on-surface-variant hover:bg-white/5"
-            )}>
-              {session}
+          {sessions.map((session) => (
+            <button 
+              key={session.id} 
+              onClick={() => setCurrentSessionId(session.id)}
+              className={cn(
+                "w-full text-left p-4 rounded-2xl text-sm font-medium transition-all truncate",
+                currentSessionId === session.id ? "bg-surface-container-highest text-on-surface shadow-sm" : "text-on-surface-variant hover:bg-white/5"
+              )}
+            >
+              {session.title}
             </button>
           ))}
+          {sessions.length === 0 && (
+            <p className="text-xs text-on-surface-variant text-center py-10 italic">No sessions yet.</p>
+          )}
         </div>
       </div>
 
@@ -999,7 +1153,7 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
               <Shield className="w-6 h-6 text-on-primary-container" />
             </div>
             <div>
-              <h3 className="font-bold">Sanctuary Guide</h3>
+              <h3 className="font-bold">{currentSession?.title || "NeuroBridge Support Guide"}</h3>
               <p className="text-[10px] text-primary flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" /> Active Support
               </p>
@@ -1007,11 +1161,11 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
           </div>
           <div className="flex items-center gap-2">
             <button className="p-2.5 rounded-xl hover:bg-white/5 text-on-surface-variant transition-all"><Share2 className="w-5 h-5" /></button>
-            <button className="p-2.5 rounded-xl hover:bg-white/5 text-on-surface-variant transition-all"><Download className="w-5 h-5" /></button>
+            <button onClick={downloadChat} className="p-2.5 rounded-xl hover:bg-white/5 text-on-surface-variant transition-all"><Download className="w-5 h-5" /></button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-6">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-6">
           {messages.map((msg) => (
             <motion.div 
               key={msg.id}
@@ -1033,20 +1187,39 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
                   "text-[10px] mt-2 opacity-60",
                   msg.role === 'user' ? "text-right" : "text-left"
                 )}>
-                  {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
             </motion.div>
           ))}
+          {isTyping && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start"
+            >
+              <div className="bg-surface-container-highest p-5 rounded-3xl rounded-tl-none border border-outline-variant flex gap-1">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+                <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+              </div>
+            </motion.div>
+          )}
         </div>
 
         <div className="p-8 bg-gradient-to-t from-background via-background to-transparent">
           <div className="max-w-4xl mx-auto relative">
             <div className="absolute -top-12 left-0 flex gap-2">
-              <button className="px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[10px] font-bold hover:border-primary transition-all">
+              <button 
+                onClick={() => setInput("Can you suggest a calming routine for bedtime?")}
+                className="px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[10px] font-bold hover:border-primary transition-all"
+              >
                 Suggest routine
               </button>
-              <button className="px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[10px] font-bold hover:border-primary transition-all">
+              <button 
+                onClick={() => setInput("What are some effective calming techniques for sensory overload?")}
+                className="px-4 py-1.5 rounded-full bg-surface-container border border-outline-variant text-[10px] font-bold hover:border-primary transition-all"
+              >
                 Calming techniques
               </button>
             </div>
@@ -1081,6 +1254,167 @@ const ChatView = ({ userName, assessmentAnswers }: { userName: string, assessmen
   );
 };
 
+const HistoryView = ({ onNavigate, sessions, assessmentAnswers }: { onNavigate: (v: View) => void, sessions: ChatSession[], assessmentAnswers: AssessmentAnswer[] }) => {
+  return (
+    <div className="flex-1 h-screen overflow-y-auto custom-scrollbar p-10 space-y-10">
+      <header className="flex items-center justify-between">
+        <div>
+          <button onClick={() => onNavigate('dashboard')} className="text-on-surface-variant hover:text-on-surface flex items-center gap-2 font-bold mb-4">
+            <ChevronLeft className="w-5 h-5" /> Back to Dashboard
+          </button>
+          <h2 className="text-4xl font-headline font-extrabold tracking-tight mb-2">NeuroBridge Support History</h2>
+          <p className="text-on-surface-variant font-medium">Review your past assessments and support conversations.</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-12 gap-8">
+        <div className="col-span-12 space-y-6">
+          <h3 className="text-xl font-bold flex items-center gap-3">
+            <MessageSquare className="w-6 h-6 text-primary" /> Past Conversations
+          </h3>
+          <div className="grid grid-cols-3 gap-6">
+            {sessions.map(session => (
+              <div key={session.id}>
+                <Card 
+                  onClick={() => {
+                    onNavigate('chat');
+                  }}
+                  className="p-6 hover:border-primary/40 transition-all cursor-pointer group"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center group-hover:bg-primary-container transition-all">
+                      <MessageSquare className="w-5 h-5 text-on-surface-variant group-hover:text-on-primary-container" />
+                    </div>
+                    <span className="text-[10px] text-on-surface-variant font-bold">{new Date(session.timestamp).toLocaleDateString()}</span>
+                  </div>
+                  <h4 className="font-bold mb-2 truncate">{session.title}</h4>
+                  <p className="text-xs text-on-surface-variant line-clamp-2">
+                    {session.messages[session.messages.length - 1]?.content || "No messages"}
+                  </p>
+                </Card>
+              </div>
+            ))}
+            {sessions.length === 0 && (
+              <div className="col-span-3 py-12 text-center bg-surface-container rounded-3xl border border-outline-variant">
+                <p className="text-on-surface-variant italic">No chat history found.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="col-span-12 space-y-6">
+          <h3 className="text-xl font-bold flex items-center gap-3">
+            <Clipboard className="w-6 h-6 text-primary" /> Assessment History
+          </h3>
+          {assessmentAnswers.length > 0 ? (
+            <Card className="p-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h4 className="font-bold text-lg">Latest Assessment</h4>
+                  <p className="text-xs text-on-surface-variant">Completed on {new Date().toLocaleDateString()}</p>
+                </div>
+                <Button variant="outline" onClick={() => onNavigate('questionnaire')}>Retake Assessment</Button>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {assessmentAnswers.slice(0, 6).map((ans, i) => (
+                  <div key={i} className="p-4 rounded-2xl bg-surface-container-low border border-outline-variant">
+                    <p className="text-[10px] font-bold text-primary uppercase mb-1">{ans.questionId}</p>
+                    <p className="text-sm font-medium truncate">{ans.question}</p>
+                    <p className="text-xs text-on-surface-variant mt-1">{ans.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          ) : (
+            <div className="py-12 text-center bg-surface-container rounded-3xl border border-outline-variant">
+              <p className="text-on-surface-variant italic">No assessment history found.</p>
+              <Button variant="outline" className="mt-4" onClick={() => onNavigate('questionnaire')}>Take Assessment</Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ScenarioView = ({ onNavigate, userName, assessmentAnswers }: { onNavigate: (v: View) => void, userName: string, assessmentAnswers: AssessmentAnswer[] }) => {
+  const [activeScenario, setActiveScenario] = useState<string | null>(null);
+  
+  const scenarios = [
+    { id: '1', title: 'The Grocery Store', description: 'Practice managing sensory overload in a busy environment.', icon: Search },
+    { id: '2', title: 'Bedtime Transition', description: 'Practice a smooth transition from play to sleep.', icon: Bell },
+    { id: '3', title: 'New Social Interaction', description: 'Practice meeting a new peer at the park.', icon: User },
+    { id: '4', title: 'Unexpected Change', description: 'Practice handling a change in the daily schedule.', icon: AlertCircle },
+  ];
+
+  if (activeScenario) {
+    return (
+      <div className="flex-1 h-screen flex flex-col bg-background">
+        <header className="p-6 border-b border-outline-variant flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setActiveScenario(null)} className="p-2 rounded-xl hover:bg-white/5">
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <h3 className="font-bold text-xl">{scenarios.find(s => s.id === activeScenario)?.title}</h3>
+          </div>
+          <Button variant="panic" onClick={() => setActiveScenario(null)}>End Scenario</Button>
+        </header>
+        <div className="flex-1 flex items-center justify-center p-10">
+          <Card className="max-w-2xl w-full p-10 text-center space-y-8" glow>
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+              <Brain className="w-10 h-10 text-primary" />
+            </div>
+            <h2 className="text-3xl font-headline font-bold">Scenario Simulation</h2>
+            <p className="text-on-surface-variant text-lg leading-relaxed">
+              This feature will use AI to simulate a real-world situation where you can practice neuro-affirming responses. 
+              The simulation for <strong>{scenarios.find(s => s.id === activeScenario)?.title}</strong> is being prepared.
+            </p>
+            <div className="p-6 rounded-3xl bg-surface-container border border-outline-variant text-left space-y-4">
+              <p className="font-bold text-primary flex items-center gap-2"><CheckCircle2 className="w-5 h-5" /> Setting the Scene</p>
+              <p className="text-sm">You are at the {scenarios.find(s => s.id === activeScenario)?.title.toLowerCase()}. Your child is starting to feel overwhelmed by the noise...</p>
+            </div>
+            <Button className="w-full py-4" onClick={() => onNavigate('chat')}>Continue in Chat Guide</Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 h-screen overflow-y-auto custom-scrollbar p-10 space-y-10">
+      <header>
+        <button onClick={() => onNavigate('dashboard')} className="text-on-surface-variant hover:text-on-surface flex items-center gap-2 font-bold mb-4">
+          <ChevronLeft className="w-5 h-5" /> Back to Dashboard
+        </button>
+        <h2 className="text-4xl font-headline font-extrabold tracking-tight mb-2">Scenario Practice</h2>
+        <p className="text-on-surface-variant font-medium">Safe spaces to practice support strategies for common challenges.</p>
+      </header>
+
+      <div className="grid grid-cols-2 gap-6">
+        {scenarios.map(s => (
+          <div key={s.id}>
+            <Card 
+              onClick={() => setActiveScenario(s.id)}
+              className="p-8 hover:border-primary/40 transition-all cursor-pointer group flex gap-6 items-start"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center group-hover:bg-primary-container transition-all shrink-0">
+                <s.icon className="w-8 h-8 text-on-surface-variant group-hover:text-on-primary-container" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">{s.title}</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">{s.description}</p>
+                <div className="mt-4 flex items-center gap-2 text-primary font-bold text-sm">
+                  Start Simulation <ChevronRight className="w-4 h-4" />
+                </div>
+              </div>
+            </Card>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const SettingsView = ({ userName, userEmail, assessmentAnswers }: { userName: string, userEmail: string, assessmentAnswers: AssessmentAnswer[] }) => {
   const [showExport, setShowExport] = useState(false);
 
@@ -1091,7 +1425,7 @@ const SettingsView = ({ userName, userEmail, assessmentAnswers }: { userName: st
 
     doc.setFontSize(22);
     doc.setTextColor(40, 40, 40);
-    doc.text('Luminescent Sanctuary Profile', margin, y);
+    doc.text('NeuroBridge Support Profile', margin, y);
     y += 15;
 
     doc.setFontSize(14);
@@ -1125,14 +1459,14 @@ const SettingsView = ({ userName, userEmail, assessmentAnswers }: { userName: st
       y += 10;
     });
 
-    doc.save(`${userName.replace(/\s+/g, '_')}_Sanctuary_Profile.pdf`);
+    doc.save(`${userName.replace(/\s+/g, '_')}_NeuroBridge_Support_Profile.pdf`);
   };
 
   return (
     <div className="flex-1 h-screen overflow-y-auto custom-scrollbar p-10 space-y-10">
       <header>
         <h2 className="text-4xl font-headline font-extrabold tracking-tight mb-2">Settings & Profile</h2>
-        <p className="text-on-surface-variant font-medium">Manage your sanctuary and view your assessment data.</p>
+        <p className="text-on-surface-variant font-medium">Manage your NeuroBridge Support and view your assessment data.</p>
       </header>
 
       <div className="grid grid-cols-12 gap-8">
@@ -1271,16 +1605,36 @@ const SettingsView = ({ userName, userEmail, assessmentAnswers }: { userName: st
 export default function App() {
   const [view, setView] = useState<View>('login');
   const [user, setUser] = useState<LocalUser | null>(null);
-  const [userName, setUserName] = useState<string>(() => localStorage.getItem('sanctuary_user_name') || '');
-  const [userEmail, setUserEmail] = useState<string>(() => localStorage.getItem('sanctuary_user_email') || '');
+  const [userName, setUserName] = useState<string>(() => localStorage.getItem('neurobridge_user_name') || localStorage.getItem('sanctuary_user_name') || '');
+  const [userEmail, setUserEmail] = useState<string>(() => localStorage.getItem('neurobridge_user_email') || localStorage.getItem('sanctuary_user_email') || '');
   const [assessmentAnswers, setAssessmentAnswers] = useState<AssessmentAnswer[]>(() => {
-    const saved = localStorage.getItem('sanctuary_assessment');
+    const saved = localStorage.getItem('neurobridge_assessment') || localStorage.getItem('sanctuary_assessment');
     return saved ? JSON.parse(saved) : [];
+  });
+  const [sessions, setSessions] = useState<ChatSession[]>(() => {
+    const saved = localStorage.getItem('neurobridge_sessions') || localStorage.getItem('sanctuary_sessions');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => {
+    const saved = localStorage.getItem('neurobridge_current_session_id') || localStorage.getItem('sanctuary_current_session_id');
+    return saved || null;
   });
 
   useEffect(() => {
+    localStorage.setItem('neurobridge_sessions', JSON.stringify(sessions));
+  }, [sessions]);
+
+  useEffect(() => {
+    if (currentSessionId) {
+      localStorage.setItem('neurobridge_current_session_id', currentSessionId);
+    } else {
+      localStorage.removeItem('neurobridge_current_session_id');
+    }
+  }, [currentSessionId]);
+
+  useEffect(() => {
     const checkAuth = () => {
-      const savedUser = localStorage.getItem('sanctuary_current_user');
+      const savedUser = localStorage.getItem('neurobridge_current_user') || localStorage.getItem('sanctuary_current_user');
       if (savedUser) {
         const parsedUser = JSON.parse(savedUser);
         setUser(parsedUser);
@@ -1310,22 +1664,33 @@ export default function App() {
 
   const handleAssessmentComplete = (answers: AssessmentAnswer[]) => {
     setAssessmentAnswers(answers);
-    localStorage.setItem('sanctuary_assessment', JSON.stringify(answers));
+    localStorage.setItem('neurobridge_assessment', JSON.stringify(answers));
   };
 
   const renderView = () => {
     switch (view) {
       case 'login': return <LoginView onNavigate={setView} />;
       case 'register': return <RegisterView onNavigate={setView} onRegister={handleRegister} />;
-      case 'dashboard': return <DashboardView onNavigate={setView} userName={userName} />;
+      case 'dashboard': return <DashboardView onNavigate={setView} userName={userName} assessmentAnswers={assessmentAnswers} />;
       case 'questionnaire': return <QuestionnaireView onNavigate={setView} onComplete={handleAssessmentComplete} />;
-      case 'chat': return <ChatView userName={userName} assessmentAnswers={assessmentAnswers} />;
+      case 'chat': return (
+        <ChatView 
+          userName={userName} 
+          assessmentAnswers={assessmentAnswers} 
+          sessions={sessions}
+          setSessions={setSessions}
+          currentSessionId={currentSessionId}
+          setCurrentSessionId={setCurrentSessionId}
+        />
+      );
       case 'settings': return <SettingsView userName={userName} userEmail={userEmail} assessmentAnswers={assessmentAnswers} />;
+      case 'history': return <HistoryView onNavigate={setView} sessions={sessions} assessmentAnswers={assessmentAnswers} />;
+      case 'scenario': return <ScenarioView onNavigate={setView} userName={userName} assessmentAnswers={assessmentAnswers} />;
       default: return <LoginView onNavigate={setView} />;
     }
   };
 
-  const showSidebar = !['login', 'register', 'questionnaire'].includes(view);
+  const showSidebar = !['login', 'register', 'questionnaire', 'scenario'].includes(view);
 
   return (
     <div className="flex min-h-screen bg-background text-on-surface font-body selection:bg-primary/30">
