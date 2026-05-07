@@ -1,4 +1,4 @@
-# 🌌 Luminous Sanctuary – AI Powered Emotional & Learning Support System
+# 🌌 NeuroBridge Support  – AI Powered Emotional & Learning Support System
 
 ## Problem Statement
 
@@ -14,7 +14,7 @@ Students and individuals often struggle with emotional stress, lack of focus, an
 
 ## Solution
 
-**Luminous Sanctuary** is an AI-powered support system that combines emotional wellness + learning productivity into a single platform.
+**NeuroBridge Support** is an AI-powered support system that combines emotional wellness + learning productivity into a single platform.
 It provides adaptive guidance, structured learning tools, and AI-based interaction to help users stay focused and mentally balanced.
 
 The system uses Firebase + React + TypeScript to deliver a fast and scalable experience.
